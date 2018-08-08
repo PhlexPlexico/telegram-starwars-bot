@@ -22,6 +22,9 @@ from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, Rege
                           ConversationHandler)
 
 import logging
+import dbprocs
+
+
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -82,8 +85,8 @@ def received_information(bot, update, user_data):
 
 
 def done(bot, update, user_data):
-    #if 'choice' in user_data:
-     #   del user_data['choice']
+     #Save our data inside the bots DB.
+    dbprocs.insertUpdatePlayer(update.message.chat_id, user_data)
 
     update.message.reply_text("Alright so here's what you're looking like so far:"
                               "%s"
@@ -92,7 +95,22 @@ def done(bot, update, user_data):
     return ConversationHandler.END
 
 def returnStoredCharacter(bot, update, user_data):
-  bot.sendMessage(update.message.chat_id, facts_to_str(user_data))
+  ourStoredData = dbprocs.retrievePlayer(update.effective_user.id, user_data)
+  if ourStoredData != None:
+    user_data['Brawn'] = ourStoredData[1]
+    user_data['Agility'] = ourStoredData[2]
+    user_data['Intellect'] = ourStoredData[3]
+    user_data['Cunning'] = ourStoredData[4]
+    user_data['Willpower'] = ourStoredData[5]
+    user_data['Presence'] = ourStoredData[6]
+    user_data['Health'] = ourStoredData[7]
+    user_data['Name'] = ourStoredData[8]
+    user_data['character'] = 'Name'
+    bot.sendMessage(update.message.chat_id, facts_to_str(user_data))
+  elif 'Name' in user_data:
+    bot.sendMessage(update.message.chat_id, facts_to_str(user_data))
+  else:
+    bot.sendMessage(update.effective_user.id, "Please create a character before retrieving!")
 
 def changeValues(bot, update, args, user_data):
   try:
@@ -102,6 +120,7 @@ def changeValues(bot, update, args, user_data):
       #Ignore the command stored to show what was set.
       if key == storedName:
         user_data[key] = setValue
+        dbprocs.insertUpdatePlayer(update.effective_user.id, user_data)
         bot.sendMessage(update.message.chat_id, "Successfully updated %s to %s" % (storedName, setValue))
         return
     bot.sendMessage(update.message.chat_id, "Sorry, %s doesn't exist for a character trait." % storedName)
@@ -111,9 +130,13 @@ def changeValues(bot, update, args, user_data):
 
 def error(bot, update, error):
     logger.warn('Update "%s" caused error "%s"' % (update, error))
-
+    
+        
 
 def main():
+
+    #Create the database if it doesn't exist.
+    dbprocs.loadDB()
     # Create the Updater and pass it your bot's token.
     updater = Updater("")
 

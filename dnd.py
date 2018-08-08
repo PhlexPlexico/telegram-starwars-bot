@@ -11,12 +11,12 @@ Press Ctrl-C on the command line or send a signal to the process to stop the
 bot.
 """
 
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters)
 #from emoji import emojize
 #emojize(":cake:", use_aliases=True) 
 import logging
 import die
-from random import randrange, uniform
+from random import (randrange, uniform)
 from functools import wraps
 from quotes import getQuote
 # Enable logging
@@ -26,7 +26,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 
 # Kevin
-LIST_OF_ADMINS = ['''DMs IDs GO HERE''']
+LIST_OF_ADMINS = [50589297]
 
 def restricted(func):
     @wraps(func)
@@ -190,7 +190,7 @@ def warning(bot, job):
 
 def main():
     # Create the EventHandler and pass it your bot's token.
-    updater = Updater("BOT TOKEN HERE")
+    updater = Updater("")
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
