@@ -54,10 +54,13 @@ def insertUpdatePlayer(user_id, user_stats):
         cursor.execute(sqlUpdateData, list(user_stats.values()))
         connection.commit()
     else:
+        user_stats['user_id'] = user_id
         placeholder = ", ".join(["?"] * (len(user_stats)))
         sqlInsertData = "insert into curCharacter ({columns}) values ({values});".format(columns=",".join(user_stats.keys()), values=placeholder)
+        print (sqlInsertData)
         cursor.execute(sqlInsertData, list(user_stats.values()))
         connection.commit()
+        del user_stats['user_id']
     cursor.close()
     connection.close()
 def retrievePlayer(user_id, user_stats):
@@ -70,3 +73,14 @@ def retrievePlayer(user_id, user_stats):
     cursor.close()
     connection.close()
     return ourData
+
+def deletePlayer(user_id, user_stats):
+    if checkPlayerExistence(user_id, user_stats) == False:
+        return
+    connection=sqlite3.connect("swrpg.db")
+    cursor = connection.cursor()
+    sqlDeletePlayer = "DELETE FROM curCharacter WHERE user_id = {0}".format(user_id)
+    cursor.execute(sqlDeletePlayer)
+    connection.commit()
+    cursor.close()
+    connection.close()

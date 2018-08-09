@@ -178,6 +178,22 @@ def unset(bot, update, args, chat_data):
     except (IndexError, ValueError):
         update.message.reply_text('Usage: /removetime <user>')
 
+@restricted
+def addAdmin(bot, update):
+    try:
+        intUserID = int(update.message.text.split()[1])
+        LIST_OF_ADMINS.append(intUserID)
+    except:
+        update.message.reply_text('Usage: /addadmin <userID>')
+
+@restricted
+def removeAdmin(bot, update):
+    try:
+        intUserID = int(update.message.text.split()[1])
+        LIST_OF_ADMINS.remove(intUserID)
+    except:
+        update.message.reply_text('Usage: /removeadmin <userID>')
+
 def alarm(bot, job):
     """Function to send the alarm message"""
     strReturnText = job.name + "'s turn is now over!"
@@ -214,6 +230,8 @@ def main():
     dp.add_handler(CommandHandler("dicehelp", dicehelp))
     dp.add_handler(CommandHandler("rollsetback", rollsetback))
     dp.add_handler(CommandHandler("rollchallenge", rollchallenge))
+    dp.add_handler(CommandHandler("addadmin", addAdmin))
+    dp.add_handler(CommandHandler("removeadmin", removeAdmin))
     dp.add_handler(CommandHandler("time", set,
                                   pass_args=True,
                                   pass_job_queue=True,

@@ -56,7 +56,7 @@ def facts_to_str(user_data):
 
 def start(bot, update):
     update.message.reply_text(
-        "Hello there! It's time to create your character! Tell me a little about yourself with the choices below.",
+        "Hello! It's time to create your character! Tell me a little about yourself with the choices below.",
         reply_markup=markup)
 
     return CHOOSING
@@ -65,28 +65,35 @@ def start(bot, update):
 def regular_choice(bot, update, user_data):
     text = update.message.text
     user_data['character'] = text
-    update.message.reply_text('Your %s? Well, hurry and tell me.' % text.lower())
+    update.message.reply_text('Your %s? Well, hurry and tell me, I don\'t have all day.' % text.lower())
 
     return TYPING_REPLY
 
 def received_information(bot, update, user_data):
     text = update.message.text
-    category = user_data['character']
-    user_data[category] = text
-    #del user_data['character']
+    try:
+        category = user_data['character']
+        if category != 'Name':
+            user_data[category] = int(text)
+        else:
+            user_data[category] = text
+        #del user_data['character']
 
-    update.message.reply_text("Alright cool, so here's what I got so far:"
-                              "%s"
-                              "You adjust your values if you'd like, or finish up here."
-                              % facts_to_str(user_data),
-                              reply_markup=markup)
+        update.message.reply_text("Current Stats:"
+                                "%s"
+                                "You adjust your values if you'd like, or finish up here."
+                                % facts_to_str(user_data),
+                                reply_markup=markup)
 
-    return CHOOSING
+        return CHOOSING
+    except:
+        update.message.reply_text("Please enter in a number instead of text, dingbat.")
 
 
 def done(bot, update, user_data):
      #Save our data inside the bots DB.
-    dbprocs.insertUpdatePlayer(update.message.chat_id, user_data)
+    error(bot, update, str(update.effective_user.id))
+    dbprocs.insertUpdatePlayer(update.effective_user.id, user_data)
 
     update.message.reply_text("Alright so here's what you're looking like so far:"
                               "%s"
@@ -124,9 +131,15 @@ def changeValues(bot, update, args, user_data):
         bot.sendMessage(update.message.chat_id, "Successfully updated %s to %s" % (storedName, setValue))
         return
     bot.sendMessage(update.message.chat_id, "Sorry, %s doesn't exist for a character trait." % storedName)
-  except (IndexError, ValueError):
-    update.message.reply_text('Usage: /statSet <stat> <value>')
+  except (IndexError, ValueError, TypeError):
+    update.message.reply_text('Usage: /statSet <stat> <integer value>')
 
+
+def deleteCharacter(bot, update, args, user_data):
+    try:
+        dbprocs.deletePlayer(update.effective_user.id, user_data)
+    except:
+        error(bot, update, "Unable to delete character, something went wrong in the DB or the user doesn't exist.")
 
 def error(bot, update, error):
     logger.warn('Update "%s" caused error "%s"' % (update, error))
